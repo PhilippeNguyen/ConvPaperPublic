@@ -3,31 +3,62 @@
 """
 
 """
+import numpy as np
+np.random.seed(10)  # this line controls the randomness, comment it out if you want unseeded randomness
 import keras
 keras.backend.set_image_dim_ordering('th')
-import numpy as np
 from algorithms import k_algorithms
 from models import k_allModelInfo
+
+from scipy.io import loadmat
 
 #for plotting
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
 from keras.utils.conv_utils import conv_output_length
 
+
+def getNatStim():
+    '''Loads the natural image dataset
+    '''
+    stim = loadmat('NaturalImages.mat')['stim']
+    stim = stim.astype(np.float32)
+    return stim
+def getWhiteNoiseStim(movieSize):
+    '''create white noise stimulus      
+    '''    
+    stim = np.random.normal(size=(movieSize))
+    return stim
 def main():
     
     options = dict()
     
     '''
-    First, we generate a fake data, one simple cell with an LN model and one complex 
-    cell using the Adelson-Bergen energy model.
+    First, we generate a fake data. 
+    Generateone simple cell with an LN model and 
+    one complex cell using the Adelson-Bergen energy model. 
     
     For simplicity's sake, these models will have no time dynamics (though the convolutional
     model will include time dynamics)
+    
+    Note that the convolutional model 
     '''
-    movieLength = 10000
-    imSize = (32,32)
-    movieSize = (*imSize,movieLength)
+  
+    
+    stimQuery = input('Use Natural Stimulus? White noise stimulus otherwise. (y/n) \n')
+    if stimQuery =='y' or stimQuery=='yes':
+        stim = getNatStim()
+        movieSize = np.shape(stim)
+        imSize = (movieSize[0],movieSize[1])
+        movieLength = movieSize[2]
+    else:
+        #stimulus parameters (if using white noise)
+        #you may require more data using white noise than natural images
+        movieLength = 15000
+        imSize = (30,30)
+        movieSize = (*imSize,movieLength)
+        stim = getWhiteNoiseStim(movieSize)
+
     #Set up neuron Gabors
 
     xCenter = 20.0
@@ -44,37 +75,37 @@ def main():
     plt.imshow(gabor90)
     plt.title('Gabor 2')
     plt.waitforbuttonpress()
-    plt.gcf().clear()
-    #create white noise stimulus (if you have natural image stimuli, you can
-    #try it as well)
+    plt.close(plt.gcf())
     
-    wnStim = np.random.normal(size=(movieSize))
     
-    #get responses for gabors
-    gabor0Response = np.tensordot(gabor0,wnStim)
-    gabor90Response = np.tensordot(gabor90,wnStim)
+    #get responses for gabors 
+    
+    gabor0Response = np.tensordot(gabor0,stim)
+    gabor90Response = np.tensordot(gabor90,stim)
     
 
     
-    #Generate cell responses
-    simpleCellResponse = np.maximum(0,gabor0Response)
-    complexCellResponse = np.sqrt((gabor0Response**2) + (gabor90Response**2))
+    #Generate cell responses and add noise
+    noiseAmount = 0.1
+    simpleCellResponse = np.maximum(0,gabor90Response + noiseAmount*np.random.normal(size=(movieLength,)))
+    complexCellResponse = np.maximum(0,np.sqrt((gabor0Response**2) + (gabor90Response**2)) + noiseAmount*np.random.normal(size=(movieLength,)))
     
-    #The code was initially set up to work alongside standard LN model estimation
+    #The code was initially set up to work alongside standard LN model estimation that was implemented in MATLAB
     #The movies must be converted into vectors (these will be reconverted into 2d
     #movies later). Note the Fortran order is needed
     #now the movie should be (numFrames,numPixelsPerFrame)
     options['Reshape_Order'] ='F'
-    wnStim = np.reshape(wnStim,(imSize[0]*imSize[1],movieLength),order=options['Reshape_Order'] )
-    wnStim = np.transpose(wnStim)
+    stim = np.reshape(stim,(imSize[0]*imSize[1],movieLength),order=options['Reshape_Order'] )
+    stim = np.transpose(stim)
     
     #Finally we set up the estimation Set, regularization Set and prediction Set
-    estIdx = slice(0,6000)
-    regIdx = slice(6000,8000)
-    predIdx = slice(8000,10000)
-    estSet=wnStim[estIdx]
-    regSet=wnStim[regIdx]
-    predSet=wnStim[predIdx]
+    #use 80% for estimation, 10% for regularization and prediction each
+    estIdx = slice(0,int(0.8*movieLength))
+    regIdx = slice(int(0.8*movieLength),int(0.9*movieLength))
+    predIdx = slice(int(0.9*movieLength),movieLength)
+    estSet=stim[estIdx]
+    regSet=stim[regIdx]
+    predSet=stim[predIdx]
     
     
     '''
@@ -86,6 +117,7 @@ def main():
     #Choose model options (see k_buildModel and k_defaultOptions)
     
     options['Filter_Size'] = 11 #Here is an example option,
+    options['Pool_Size'] = 3
     #We find that there are few important settings needed. The model works fine
     #with random initializations of the filter layer. However, if the filter is
     # too small, then the model will perform poorly
@@ -93,6 +125,7 @@ def main():
     #If an option isn't specified, then the value in k_defaultOptions will be used
     
     #set the amount of delays accounted for by the model (from t to t-8)
+    #the optimal model would have options['Frames'] =list(range(1)), since there are no time dynamics
     options['Frames'] =list(range(8))
 
     
@@ -123,16 +156,22 @@ def main():
     convImageSize = conv_output_length(imSize[0],simpleOpts['Filter_Size'],'valid',simpleOpts['Stride'])
     mapSize = conv_output_length(convImageSize,simpleOpts['Pool_Size'],'valid',simpleOpts['Pool_Size'])
 
-    filterWeights = simpleCellResults['model']['weights'][0]
+    simpleCellWeights = simpleCellResults['model']['weights']
+    filterWeights = simpleCellWeights[0]
     plotFilter(filterWeights)
     plt.title('Simple cell filter')
     plt.waitforbuttonpress()
-    plt.gcf().clear()
-    mapMean = simpleCellResults['model']['weights'][3]
-    mapSigma = simpleCellResults['model']['weights'][4]
+    plt.close(plt.gcf())
+    alpha = simpleCellWeights[2]
+    plotAlpha(alpha)
+    plt.title('Alpha value')
+    plt.waitforbuttonpress()
+    plt.close(plt.gcf())
+    mapMean = simpleCellWeights[3]
+    mapSigma = simpleCellWeights[4]
     mapVals = plotMap(mapMean,mapSigma,mapSize)
     plt.waitforbuttonpress()
-
+    plt.close(plt.gcf())
     
     '''
     Estimate the complex cell
@@ -146,7 +185,7 @@ def main():
 
 
     
-    pass
+    return
 
 def generateGabors(imSize,xCenter,yCenter,sf,ori,env):
     ''' Very simple gabor parameterization '''
@@ -162,6 +201,11 @@ def generateGabors(imSize,xCenter,yCenter,sf,ori,env):
     
     return cosFilt/np.max(np.abs(cosFilt)),sinFilt/np.max(np.abs(sinFilt))
 
+
+'''Plotting functions. 
+    
+'''
+
 def plotFilter(filterWeights):
     numFrames = filterWeights.shape[2]
     for i in range(numFrames):
@@ -170,6 +214,14 @@ def plotFilter(filterWeights):
         
         
     return
+def plotAlpha(alpha):
+    x = np.arange(-10,10)
+    y = np.arange(-10,10)
+    y[y<0] = alpha*y[y<0] 
+    plt.plot(x,y)
+    return
+#Note: the map and reconstruction function assume that the 'scale' parameter
+#       of the Gaussian Map is set to 1.0
 def plotMap(mean,sigma,mapSize):
     sigmaVector = np.asarray([[sigma[0],sigma[1]],[sigma[1],sigma[2]]])
     

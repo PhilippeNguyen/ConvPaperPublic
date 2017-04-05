@@ -29,7 +29,7 @@ def kConvGaussNet(given_options):
     
     options['Initial_Dense_Values']= optDef('Initial_Dense_Values',given_options,[np.ones((1,1)),np.zeros((1))])
     
-    options['Loss_Function']= optDef('Loss_Function',given_options,'msle')
+    options['Loss_Function']= optDef('Loss_Function',given_options,'mse')
     
     return options
 

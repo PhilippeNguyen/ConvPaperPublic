@@ -73,32 +73,7 @@ class k_Model(object):
         return (X.shape[1:])
     
     
-class kRegression(k_Model):
-    model_name = 'kRegression'
 
-    def __init__(self):
-        super(kRegression,self).__init__()
-        return
-    def defaultOptions(self,options = dict()):
-        return k_defaultOptions.kRegression(options)
-    def shapeStimulus(self):
-        return k_shapeStimulus.kRegressionStyle
-    def buildModel(self,options):
-        return k_buildModel.buildkRegression(options)
-
-   
-class kConvNet(k_Model):
-    model_name = 'kConvNet'
-
-    def __init__(self):
-        super(kConvNet,self).__init__()
-        return
-    def defaultOptions(self,options = dict()):
-        return k_defaultOptions.kConvNet(options)
-    def shapeStimulus(self):
-        return k_shapeStimulus.kConvNetStyle
-    def buildModel(self,options):
-        return k_buildModel.buildkConvNet(options)
 
 class kConvGaussNet(k_Model):
     model_name = 'kConvGaussNet'
@@ -111,27 +86,3 @@ class kConvGaussNet(k_Model):
         return k_shapeStimulus.kConvNetStyle
     def buildModel(self,options):
         return k_buildModel.buildkConvGaussNet(options)
-        
-class kConvDOGNet(k_Model):
-    model_name = 'kConvDOGNet'
-    def __init__(self):
-        super(kConvDOGNet,self).__init__()
-        return
-    def defaultOptions(self,options = dict()):
-        return k_defaultOptions.kConvDOGNet(options)
-    def shapeStimulus(self):
-        return k_shapeStimulus.kConvNetStyle
-    def buildModel(self,options):
-        return k_buildModel.buildkConvDOGNet(options)
-
-class kConvGaussEXP(k_Model):
-    model_name = 'kConvGaussEXP'
-    def __init__(self):
-        super(kConvGaussEXP,self).__init__()
-        return
-    def defaultOptions(self,options = dict()):
-        return k_defaultOptions.kConvGaussEXP(options)
-    def shapeStimulus(self):
-        return k_shapeStimulus.kConvNetStyle
-    def buildModel(self,options):
-        return k_buildModel.buildkConvGaussEXP(options)

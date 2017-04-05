@@ -73,11 +73,7 @@ def k_SIAAdam(model_class,X_train,y_train,X_valid,y_valid,X_test,y_test,given_op
     bestModel['method'] = methodName
     bestModel['model_class'] = model_class
     
-    k_utils.printDictionary(options,'options')
-#    print('\n Printing some estimated model parameters...')
-#    print("{} = {}".format('p_opt', str(estimatedModel['p_opt'])))
-#    print("{} = {}".format('alpha', str(estimatedModel['weights'][2])))
-    
+    k_utils.printDictionary(options,'options')   
     
     return bestModel
     
