@@ -91,7 +91,7 @@ def main():
     
     
     #Generate cell responses and add noise
-    noiseAmount = 0.1
+    noiseAmount = 0.5
     simpleCellResponse = np.maximum(0,gabor0Response + noiseAmount*np.random.normal(size=(movieLength,)))
     complexCellResponse = np.maximum(0,np.sqrt((gabor0Response**2) + (gabor90Response**2)) + noiseAmount*np.random.normal(size=(movieLength,)))
     

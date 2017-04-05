@@ -9,16 +9,18 @@ Using python 3.5
 """
 
 import keras
-import theano
-import os
+#import os
+#import theano
+#os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
+#theano.config.exception_verbosity='high'
+
 from utils import k_utils
-os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
 
 
 
 from utils.k_utils import SIAValidate
 
-theano.config.exception_verbosity='high'
+
 
 from models import k_defaultOptions
 

@@ -17,7 +17,16 @@ if keras.backend._backend == 'theano':
     import theano
     import theano.tensor as T
     theano.config.floatX='float32'
-
+    matrix_inverse = T.nlinalg.matrix_inverse
+    tensordot = T.tensordot
+    matrix_determinant = T.nlinalg.det
+    
+if keras.backend._backend == 'tensorflow':
+    import tensorflow as tf
+    matrix_inverse = tf.matrix_inverse
+    tensordot = tf.tensordot
+    matrix_determinant = tf.matrix_determinant
+    
 class gaussian2dMapLayer(Layer):
     ''' assumes 2-d  input
         Only Allows Square 
@@ -32,6 +41,7 @@ class gaussian2dMapLayer(Layer):
         self.input_dim = input_dim
         self.inv_scale = input_dim[0]
         
+        #map the space of inputs, the values for the dot product will be pulled from a gaussian density
         xSpace = np.linspace(0,input_dim[0]-1,input_dim[0])
         ySpace = np.linspace(0,input_dim[1]-1,input_dim[1])
         spaceMatrix = np.asarray((np.meshgrid(xSpace,ySpace)))
@@ -58,9 +68,6 @@ class gaussian2dMapLayer(Layer):
         super(gaussian2dMapLayer, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        self.mean = self.init((2,))
-
-        self.sigma = self.init((3,))
         
         self.mean = self.add_weight((2,),
                                     initializer=self.init,
@@ -69,33 +76,33 @@ class gaussian2dMapLayer(Layer):
                             initializer=self.init,
                             name='sigma')
         if self.init_mean is not None:
-            self.mean.set_value(self.init_mean)
+            K.set_value(self.mean,self.init_mean)
             del self.init_mean
         if self.init_sigma is not None:
-            self.sigma.set_value(self.init_sigma)
+            K.set_value(self.sigma,self.init_sigma)
             del self.init_sigma
         self.built = True
 
     def call(self,x, mask=None):
-        x = K.reshape(x,(x.shape[0],x.shape[-2]*x.shape[-1]))
+        x = K.reshape(x,(K.shape(x)[0],K.shape(x)[-2]*K.shape(x)[-1]))
 
         covar = K.sign(self.sigma[1])*K.switch(K.sqrt(self.sigma[0]*self.sigma[2])-self.tolerance > K.abs(self.sigma[1]),
                                                  K.abs(self.sigma[1]),
                                                  K.sqrt(self.sigma[0]*self.sigma[2])-self.tolerance )
 
-
-        inner = (self.spaceVector - self.inv_scale*self.mean.dimshuffle(0,'x'))
+        #Below is just the calculations for a Gaussian
+        inner = (self.spaceVector - self.inv_scale*K.expand_dims(self.mean))
 
         cov = self.inv_scale*K.stack([[self.sigma[0],covar],[covar,self.sigma[2]]])
-        inverseCov = T.nlinalg.matrix_inverse(cov)
-        firstProd =  T.tensordot(inner.T,inverseCov,axes=1)
-        malahDistance = K.sum(firstProd*inner.T,axis =1)
+        inverseCov = matrix_inverse(cov)
+        firstProd =  tensordot(K.transpose(inner),inverseCov,axes=1)
+        malahDistance = K.sum(firstProd*K.transpose(inner),axis =1)
         gaussianDistance = K.exp((-1./2.)*malahDistance)
-        detCov = T.nlinalg.det(cov)
-        denom = 1./(2*np.pi*T.sqrt(detCov))
-        gdKernel = K.dot(x,denom*gaussianDistance)
-        return gdKernel.dimshuffle(0,'x').astype('float32')
-        
+        detCov = matrix_determinant(cov)
+        denom = 1./(2*np.pi*K.sqrt(detCov))
+#        gdKernel = K.dot(x,denom*gaussianDistance)
+        gdKernel = tensordot(x,denom*gaussianDistance,axes=1)
+        return K.expand_dims(gdKernel)
 
 
     def get_output_shape_for(self, input_shape):

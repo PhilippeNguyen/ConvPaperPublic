@@ -47,7 +47,7 @@ def buildkConvGaussNet(options):
     model_dense5 = Dense((1),weights=options['Initial_Dense_Values'])(model_gaussian4)
     output = Activation('relu')(model_dense5)
 
-    model = keras.models.Model(input=inputLayer,output =output)
+    model = keras.models.Model(inputs=inputLayer,outputs =output)
     
     return model
     
