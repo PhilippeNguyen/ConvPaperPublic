@@ -4,7 +4,6 @@ Created on Tue Dec 20 16:23:41 2016
 
 @author: phil
 """
-from utils import p_utils
 import numpy as np
 from utils import k_utils
 
@@ -58,14 +57,14 @@ class scaleStimulusClass(object):
 def kRegressionStyle(stim,options,trialSize = 375):
     ''' with standard a_movieClip, the movies are 375 frames long'''
 
-    X = p_utils.dataDelay(stim,trialSize,options['Frames'])
+    X = k_utils.dataDelay(stim,trialSize,options['Frames'])
 
     return X
 def kConvNetStyle(stim,options,trialSize = 375):
     ''' with standard a_movieClip, the movies are 375 frames long'''    
     
-    X = p_utils.dataDelay(stim,trialSize,options['Frames'])
-    X = p_utils.dataDelayAsList(X,len(options['Frames']))
+    X = k_utils.dataDelay(stim,trialSize,options['Frames'])
+    X = k_utils.dataDelayAsList(X,len(options['Frames']))
     #convert to (samples,frames,rows,cols)
     X = X.reshape(X.shape[0],X.shape[1],np.int(np.sqrt(X.shape[2])),np.int(np.sqrt(X.shape[2])),order=options['Reshape_Order'])
     

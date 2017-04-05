@@ -6,14 +6,10 @@ Created on Thu Dec  8 13:45:49 2016
 """
 import keras
 import numpy as np
-from keras.layers import Dense, Dropout, Activation, Flatten,advanced_activations, Reshape
-from keras.layers import Convolution2D, AveragePooling2D, Convolution1D
-from keras.layers.normalization import BatchNormalization
-from keras.models import Sequential
-from keras.regularizers import l1
+from keras.layers import Dense, Activation
+from keras.layers import Convolution2D, AveragePooling2D
 from keras.utils.conv_utils import conv_output_length
 from extra_layers import k_layers
-from keras.layers.core import ActivityRegularization
 from keras.layers.advanced_activations import PReLU
 
 

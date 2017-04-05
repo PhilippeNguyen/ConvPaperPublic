@@ -5,7 +5,7 @@ Created on Tue Dec 20 15:49:31 2016
 @author: phil
 """
 
-from utils.p_utils import optDef
+from utils.k_utils import optDef
 import numpy as np
 def adamDefaults(given_options):
     options = dict()

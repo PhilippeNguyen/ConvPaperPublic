@@ -7,14 +7,16 @@ Created on Tue May 24 17:39:39 2016
 special layers for keras
 """
 import numpy as np
+import keras
 from keras import initializers
 from keras.engine import Layer
 import keras.backend as K
-import theano
-import theano.tensor as T
-theano.config.floatX='float32'
 
 
+if keras.backend._backend == 'theano':
+    import theano
+    import theano.tensor as T
+    theano.config.floatX='float32'
 
 class gaussian2dMapLayer(Layer):
     ''' assumes 2-d  input
@@ -75,7 +77,7 @@ class gaussian2dMapLayer(Layer):
         self.built = True
 
     def call(self,x, mask=None):
-        x = T.reshape(x,(x.shape[0],x.shape[-2]*x.shape[-1]))
+        x = K.reshape(x,(x.shape[0],x.shape[-2]*x.shape[-1]))
 
         covar = K.sign(self.sigma[1])*K.switch(K.sqrt(self.sigma[0]*self.sigma[2])-self.tolerance > K.abs(self.sigma[1]),
                                                  K.abs(self.sigma[1]),
@@ -87,11 +89,11 @@ class gaussian2dMapLayer(Layer):
         cov = self.inv_scale*K.stack([[self.sigma[0],covar],[covar,self.sigma[2]]])
         inverseCov = T.nlinalg.matrix_inverse(cov)
         firstProd =  T.tensordot(inner.T,inverseCov,axes=1)
-        malahDistance = T.sum(firstProd*inner.T,axis =1)
-        gaussianDistance = T.exp((-1./2.)*malahDistance)
+        malahDistance = K.sum(firstProd*inner.T,axis =1)
+        gaussianDistance = K.exp((-1./2.)*malahDistance)
         detCov = T.nlinalg.det(cov)
         denom = 1./(2*np.pi*T.sqrt(detCov))
-        gdKernel = T.dot(x,denom*gaussianDistance)
+        gdKernel = K.dot(x,denom*gaussianDistance)
         return gdKernel.dimshuffle(0,'x').astype('float32')
         
 
