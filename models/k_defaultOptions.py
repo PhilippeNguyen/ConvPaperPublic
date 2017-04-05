@@ -34,3 +34,20 @@ def kConvGaussNet(given_options):
     return options
 
     
+def kConvNet(given_options):
+    options = dict()
+        
+    options['N_Kern'] = optDef('N_Kern',given_options,1)
+    options['Filter_Size'] = optDef('Filter_Size',given_options,13)
+    options['Stride'] = optDef('Stride',given_options,1)
+    options['Initial_Filter_Weights'] = optDef('Initial_Filter_Weights',given_options,None)
+
+    options['Initial_PReLU']= optDef('Initial_PReLU',given_options,0.5)
+
+    options['L1'] = optDef('L1',given_options,0)
+    options['L2'] = optDef('L2',given_options,0)
+    options['Pool_Size'] = optDef('Pool_Size',given_options,2)
+    options['Initial_Map_Weights'] = optDef('Initial_Map_Weights',given_options,None)
+    
+    options['Loss_Function']= optDef('Loss_Function',given_options,'mse')
+    return options

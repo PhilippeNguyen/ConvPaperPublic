@@ -73,8 +73,6 @@ class k_Model(object):
         return (X.shape[1:])
     
     
-
-
 class kConvGaussNet(k_Model):
     model_name = 'kConvGaussNet'
     def __init__(self):
@@ -86,3 +84,16 @@ class kConvGaussNet(k_Model):
         return k_shapeStimulus.kConvNetStyle
     def buildModel(self,options):
         return k_buildModel.buildkConvGaussNet(options)
+    
+class kConvNet(k_Model):
+    model_name = 'kConvNet'
+
+    def __init__(self):
+        super(kConvNet,self).__init__()
+        return
+    def defaultOptions(self,options = dict()):
+        return k_defaultOptions.kConvNet(options)
+    def shapeStimulus(self):
+        return k_shapeStimulus.kConvNetStyle
+    def buildModel(self,options):
+        return k_buildModel.buildkConvNet(options)

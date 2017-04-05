@@ -97,7 +97,7 @@ def main():
     
     #The code was initially set up to work alongside standard LN model estimation that was implemented in MATLAB
     #The movies must be converted into vectors (these will be reconverted into 2d
-    #movies later). Note the Fortran order is needed
+    #movies later). Plotting assumes fortran order because of this
     #now the movie should be (numFrames,numPixelsPerFrame)
     options['Reshape_Order'] ='F'
     stim = np.reshape(stim,(imSize[0]*imSize[1],movieLength),order=options['Reshape_Order'] )
@@ -118,6 +118,11 @@ def main():
     '''
     
     myModel = k_allModelInfo.kConvGaussNet()
+
+#    myModel = k_allModelInfo.kConvNet() #You can use the affine dense layer convolution model instead of Gaussian 
+                                        # (will need to plot using the plotStandardMap instead of plotGaussMap)
+
+    
     
     #Choose model options (see k_buildModel and k_defaultOptions)
     
@@ -178,7 +183,7 @@ def main():
     print('printing gaussian values, values are scaled such that 0(top/left) to 1(bottom/right)')
     print('Gaussian Center (x,y): {}'.format(mapMean))
     print('Gaussian Covariance Matrix (sig_x,covariance,sig_y): {}'.format(mapSigma))
-    mapVals = plotMap(mapMean,mapSigma,mapSize)
+    mapVals = plotGaussMap(mapMean,mapSigma,mapSize)
     plt.title('Gaussian Map (projected onto Map Layer)')
     plt.waitforbuttonpress()
     plt.close(plt.gcf())
@@ -220,7 +225,7 @@ def main():
     print('printing gaussian values, values are scaled such that 0(top/left) to 1(bottom/right)')
     print('Gaussian Center (x,y): {}'.format(mapMean))
     print('Gaussian Covariance Matrix (sig_x,covariance,sig_y): {}'.format(mapSigma))
-    mapVals = plotMap(mapMean,mapSigma,mapSize)
+    mapVals = plotGaussMap(mapMean,mapSigma,mapSize)
     plt.title('Gaussian Map (projected onto Map Layer)')
     plt.waitforbuttonpress()
     plt.close(plt.gcf())
@@ -264,7 +269,7 @@ def plotAlpha(alpha):
     plt.plot(x,y)
     return
 
-def plotMap(mean,sigma,mapSize):
+def plotGaussMap(mean,sigma,mapSize):
     sigmaVector = np.asarray([[sigma[0],sigma[1]],[sigma[1],sigma[2]]])
     
     meanVector = mean*mapSize
@@ -277,6 +282,13 @@ def plotMap(mean,sigma,mapSize):
     myMap = mvn.pdf(pos)
     plt.imshow(myMap)
     return myMap
+
+def plotStandardMap(mapWeights):
+    mapSize = int(np.sqrt(np.shape(mapWeights)[0]))
+    mapWeights = np.reshape(mapWeights,(mapSize,mapSize))
+    
+    plt.imshow(mapWeights)
+    return mapWeights
 def plotReconstruction(filterWeights,mapWeights,stride,poolSize,fullSize):
     mapSize = np.shape(mapWeights)[0]
     filterSize = np.shape(filterWeights)[0]
