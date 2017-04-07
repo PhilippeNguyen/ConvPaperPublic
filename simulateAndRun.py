@@ -32,7 +32,7 @@ def getWhiteNoiseStim(movieSize):
 def main():
     
     options = dict()
-    
+    print('When an image is displayed, click on it to move forward\n')
     '''
     First, we generate a fake data. 
     Generateone simple cell with an LN model and 
@@ -50,7 +50,7 @@ def main():
     
     '''
     
-       
+    
     stimQuery = input('Use Natural Stimulus? White noise stimulus otherwise. (y/n) \n')
     if stimQuery.lower() =='y' or stimQuery.lower()=='yes':
         print('Using natural images\n')
@@ -69,9 +69,9 @@ def main():
     #Set up neuron Gabors
 
     xCenter = 20.0
-    yCenter= 10.0
+    yCenter= 8.0
     sf = 0.10
-    ori = 3.0
+    ori = 90.0
     env = 2.0
     gabor0,gabor90 = generateGabors(imSize,xCenter,yCenter,sf,ori,env)
     
@@ -168,7 +168,7 @@ def main():
     mapSize = conv_output_length(convImageSize,simpleOpts['Pool_Size'],'valid',simpleOpts['Pool_Size'])
 
     simpleCellWeights = simpleCellResults['model']['weights']
-    filterWeights = np.rot90(simpleCellWeights[0][:,:,:,0],k=2) # convolution operator uses the 180 rotated filter
+    filterWeights = checkRotation(simpleCellWeights[0][:,:,:,0])
     plotFilter(filterWeights)
     plt.suptitle('Simple cell filter')
     plt.waitforbuttonpress()
@@ -210,7 +210,7 @@ def main():
     mapSize = conv_output_length(convImageSize,complexOpts['Pool_Size'],'valid',complexOpts['Pool_Size'])
 
     complexCellWeights = complexCellResults['model']['weights']
-    filterWeights = np.rot90(complexCellWeights[0][:,:,:,0],k=2) # convolution operator uses the 180 rotated filter
+    filterWeights = checkRotation(complexCellWeights[0][:,:,:,0]) 
     plotFilter(filterWeights)
     plt.suptitle('Complex cell filter')
     plt.waitforbuttonpress()
@@ -251,7 +251,13 @@ def generateGabors(imSize,xCenter,yCenter,sf,ori,env):
 '''Plotting functions. 
     
 '''
-
+def checkRotation(filterWeights):
+    #theano convolution will flip the filter, whereas tensorflow doesn't
+    if keras.backend._backend == 'tensorflow':
+        return filterWeights
+    else:
+        return np.rot90(filterWeights,k=2)
+    
 def plotFilter(filterWeights):
     numFrames = filterWeights.shape[2]
     vmin = np.min(filterWeights)
