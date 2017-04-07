@@ -46,3 +46,11 @@ The complex cell response is generated using the Adelson-Bergen energy model. Ou
 However, this method still performs well for the AB model. One could generate a complex cell by using spatially separated identical simple cell subunits.
 Our method should perform even better on this kind of complex cell.
 
+Sorry, there is some mixing terminology throughout, especially with regards to the validation sets. Here is a general outline (corresponding to training set/early stopping regularization set/ test set):
+
+In the paper we use the terms Estimation/Regularization/Validation. Whereas in the code we use the terms Estimation/Validation/Prediction (though sometimes train/regularization/test is used). The model result will output the raw VAF on the validation set and raw VAF on the prediction set.
+
+The final non-linearity is not estimated in the keras framework. After the convolutional model is fitted, we take model predicted output to the training stimulus and the training set response and use a half power curve fit.
+This is the predVAF and validVAFs. The noNL versions are the VAF computations without this last nonlinearity fitted. (You shouldn't see a difference between the noNL and "with NL" versions since the model does not have this nonlinearity)
+
+The values of the Gaussian Map Layer correspond to the convolved image (the input to the gaussian map layer) and not image space itself. 
