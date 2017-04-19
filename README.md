@@ -1,5 +1,7 @@
 ## Intro
-This repository contains Python code for a working example of our receptive field estimation method, using a simple convolutional neural network approach. The method is described in detail, with results on many cortical neurons, in our paper currently submitted for publication (“Estimating receptive fields of simple and complex cells in early visual cortex:  A convolutional neural network model with parameterized rectification”, by myself and Curtis Baker). This code generates responses of simulated model simple and complex V1 cells, to natural image as well as white noise stimuli. For each simulated neuron, it estimates the parameters of a receptive field model consisting of a single spatiotemporal filter, a parameterized rectified linear unit (PReLU), and a two-dimensional Gaussian "map" of the receptive field envelope.
+This repository contains Python code for a working example of our receptive field estimation method, using a simple convolutional neural network approach. The method is described in detail, with results on many cortical neurons, in our paper currently submitted for publication (“Estimating receptive fields of simple and complex cells in early visual cortex:  A convolutional neural network model with parameterized rectification”, by myself and Curtis Baker). 
+
+This code generates responses of simulated model simple and complex V1 cells, to natural image as well as white noise stimuli. For each simulated neuron, it estimates the parameters of a receptive field model consisting of a single spatiotemporal filter, a parameterized rectified linear unit (PReLU), and a two-dimensional Gaussian "map" of the receptive field envelope.
 
 ## Description of the code
 I've commented throughout the primary script, simulateAndRun.py, so that you can follow what is occuring.
@@ -11,9 +13,10 @@ The code also generates either white noise stimuli, or uses natural image stimul
 Once the stimuli and neuron responses are generated, we estimate the model parameters, and then plot the results.
 
 ## Requirements
-	Python 3 (have not tested with Python 2). 
-	scipy, numpy, matplotlib 
-	Keras 2.0 (the code will work with either theano or tensorflow backend) - https://keras.io/
+Python 3 (have not tested with Python 2). 
+scipy, numpy, matplotlib 
+Keras 2.0 (the code will work with either theano or tensorflow backend) - https://keras.io/
+
 As with all theano/tensorflow implementations, you will find that the code runs faster when running on the GPU.
 If you have an NVIDIA card, the libraries CUDA and CUDNN will be useful.
 	https://developer.nvidia.com/cuda-zone
@@ -35,4 +38,4 @@ Sorry, there is some mixing of terminology throughout, especially with regards t
 
 The final output non-linearity is not estimated in the keras framework. After the convolutional model is fitted, we take the model's predicted output to the training stimulus and the training set response, and use a half-power curve-fit. This is the predVAF and validVAFs. The noNL versions are the VAF computations without this last nonlinearity fitted. (However, you shouldn't see a difference between the noNL and "with NL" versions since the model does not have this nonlinearity).
 
-	Note that the values of the Gaussian Map Layer correspond to the convolved image (the input to the gaussian map layer), and not image space itself.
+Note that the values of the Gaussian Map Layer correspond to the convolved image (the input to the gaussian map layer), and not image space itself.
