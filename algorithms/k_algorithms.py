@@ -61,7 +61,7 @@ def k_SIAAdam(model_class,X_train,y_train,X_valid,y_valid,X_test,y_test,given_op
     earlyStop=keras.callbacks.EarlyStopping(monitor='val_loss', patience=options['Patience'], verbose=0, mode='auto')
     
     #Fit Model
-    model.fit(X_train,y_train, validation_data=(X_valid,y_valid), nb_epoch = options['N_Epochs'],
+    model.fit(X_train,y_train, validation_data=(X_valid,y_valid), epochs = options['N_Epochs'],
               batch_size=options['Batch_Size'],callbacks=[ earlyStop],verbose=2)
 
     #Validate Model   

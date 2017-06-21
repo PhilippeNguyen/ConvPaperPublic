@@ -7,7 +7,7 @@ Created on Thu Dec  8 13:45:49 2016
 import keras
 import numpy as np
 from keras.layers import Dense, Activation,Flatten
-from keras.layers import Convolution2D, AveragePooling2D
+from keras.layers import Conv2D, AveragePooling2D
 from keras.utils.conv_utils import conv_output_length
 from extra_layers import k_layers
 from keras.layers.advanced_activations import PReLU
@@ -28,12 +28,12 @@ def buildkConvGaussNet(options):
     #MODEL CREATION #
     #################
     inputLayer =keras.layers.Input(shape=options['Input_Shape'])
-    model_conv1 = Convolution2D(options['N_Kern'], options['Filter_Size'], options['Filter_Size'], 
-                            border_mode='valid',
+    model_conv1 = Conv2D(options['N_Kern'], (options['Filter_Size'], options['Filter_Size']), 
+                            padding='valid',
                             input_shape=options['Input_Shape'],
-                            init='glorot_normal',
+                            kernel_initializer='glorot_normal',
                             weights = options['Initial_Filter_Weights'],
-                            subsample = stride)(inputLayer)
+                            strides = stride)(inputLayer)
     preluWeight = np.array(options['Initial_PReLU'],ndmin=3)                       
     model_prelu2 = PReLU(weights=[preluWeight],
                          shared_axes=[1,2,3])(model_conv1)
@@ -72,12 +72,12 @@ def buildkConvNet(options):
     #################
     
     inputLayer =keras.layers.Input(shape=options['Input_Shape'])
-    model_conv1 = Convolution2D(options['N_Kern'], options['Filter_Size'], options['Filter_Size'], 
-                            border_mode='valid',
+    model_conv1 = Conv2D(options['N_Kern'],(options['Filter_Size'], options['Filter_Size']), 
+                            padding='valid',
                             input_shape=options['Input_Shape'],
-                            init='glorot_normal',
+                            kernel_initializer='glorot_normal',
                             weights = options['Initial_Filter_Weights'],
-                            subsample = stride)(inputLayer)
+                            strides = stride)(inputLayer)
                             
     preluWeight = np.array(options['Initial_PReLU'],ndmin=3)                       
     model_prelu2 = PReLU(weights=[preluWeight],
