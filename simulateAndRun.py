@@ -76,13 +76,14 @@ def main():
     gabor0,gabor90 = generateGabors(imSize,xCenter,yCenter,sf,ori,env)
     
     #Plot the Gabors
-    plt.imshow(gabor0)
-    plt.title('Gabor 1')
-    plt.waitforbuttonpress()
-    plt.imshow(gabor90)
-    plt.title('Gabor 2')
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
+#    plt.imshow(gabor0)
+#    plt.title('Gabor 1')
+#    plt.waitforbuttonpress()
+#    plt.close(plt.gcf())
+#    plt.imshow(gabor90)
+#    plt.title('Gabor 2')
+#    plt.waitforbuttonpress()
+#    plt.close(plt.gcf())
     
     #get responses for gabors 
     
@@ -173,7 +174,7 @@ def main():
     plt.suptitle('Simple cell filter')
     plt.waitforbuttonpress()
     plt.close(plt.gcf())
-    alpha = simpleCellWeights[2]
+    alpha = np.squeeze(simpleCellWeights[2])
     plotAlpha(alpha)
     plt.title('PReLU (Estimated intermediate non-linearity), alpha = {}'.format(alpha))
     plt.waitforbuttonpress()
@@ -215,7 +216,7 @@ def main():
     plt.suptitle('Complex cell filter')
     plt.waitforbuttonpress()
     plt.close(plt.gcf())
-    alpha = complexCellWeights[2]
+    alpha = np.squeeze(complexCellWeights[2])
     plotAlpha(alpha)
     plt.title('PReLU (Estimated intermediate non-linearity), alpha = {}'.format(alpha))
     plt.waitforbuttonpress()
