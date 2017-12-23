@@ -76,14 +76,14 @@ def main():
     gabor0,gabor90 = generateGabors(imSize,xCenter,yCenter,sf,ori,env)
     
     #Plot the Gabors
-#    plt.imshow(gabor0)
-#    plt.title('Gabor 1')
-#    plt.waitforbuttonpress()
-#    plt.close(plt.gcf())
-#    plt.imshow(gabor90)
-#    plt.title('Gabor 2')
-#    plt.waitforbuttonpress()
-#    plt.close(plt.gcf())
+    plt.imshow(gabor0)
+    plt.title('Gabor 1')
+    plt.waitforbuttonpress()
+    plt.close(plt.gcf())
+    plt.imshow(gabor90)
+    plt.title('Gabor 2')
+    plt.waitforbuttonpress()
+    plt.close(plt.gcf())
     
     #get responses for gabors 
     
