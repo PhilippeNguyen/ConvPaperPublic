@@ -77,7 +77,7 @@ def k_SIAAdam(model_class,X_train,y_train,X_valid,y_valid,X_test,y_test,given_op
     
 #    k_utils.printDictionary(options,'options')   
     
-    return bestModel
+    return bestModel,model
     
 
 

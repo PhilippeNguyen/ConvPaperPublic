@@ -27,6 +27,67 @@ if keras.backend._backend == 'tensorflow':
     tensordot = tf.tensordot
     matrix_determinant = tf.matrix_determinant
     
+class maxoutLayer(Layer):
+    def __init__(self, units,init_kernel=None,init_bias=None,
+                 **kwargs):
+        if 'input_shape' not in kwargs and 'input_dim' in kwargs:
+            kwargs['input_shape'] = (kwargs.pop('input_dim'),)
+        super(maxoutLayer, self).__init__(**kwargs)
+        self.units = units
+        self.supports_masking = True
+        self.init_kernel=None
+        self.init_bias=None
+#        if init_kernel is None:
+##            self.init_kernel = np.expand_dims(np.linspace(-1,1,self.units).astype('float32'),
+##                                              axis=0)
+#            self.init_kernel = np.expand_dims(np.array([0.01,1]).astype('float32'),
+#                                                    axis=0)
+#        if init_bias is None:
+#            self.init_bias  = np.zeros((1,self.units))
+
+    def build(self, input_shape):
+        print('hello')
+        assert len(input_shape) >= 2
+
+        self.kernel = self.add_weight(shape=(1,self.units),
+                                      initializer='glorot_uniform',
+                                      name='kernel')
+        self.bias = self.add_weight(shape=(1,self.units),
+                                    initializer='glorot_uniform',
+                                    name='bias')
+        if self.init_kernel is not None:
+            print(self.init_kernel)
+            K.set_value(self.kernel,self.init_kernel)
+            del self.init_kernel
+        if self.init_bias is not None:
+            K.set_value(self.bias,self.init_bias)
+            del self.init_bias
+
+        self.built = True
+
+    def call(self, inputs):
+        input_shape = K.shape(inputs)
+        inputs = K.batch_flatten(inputs)
+        inputs = K.expand_dims(inputs,axis=-1)
+        output = K.dot(inputs, self.kernel) + self.bias
+        output = K.max(output,axis=-1)
+        output = K.reshape(output,input_shape)
+        
+        
+        return output
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+    def get_config(self):
+        config = {
+            'units': self.units,
+
+        }
+        base_config = super(maxoutLayer, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+    
+    
 class gaussian2dMapLayer(Layer):
     ''' assumes 2-d  input
         Only Allows Square 
@@ -61,7 +122,7 @@ class gaussian2dMapLayer(Layer):
 
         self.init_mean = init_mean.astype('float32')
         self.init_sigma = init_sigma.astype('float32')
-        self.tolerance = np.asarray(0.01) #use tolerance from stopping the matrix from being un-invertible
+        self.tolerance = np.asarray(0.001) #use tolerance from stopping the matrix from being un-invertible
 
         if self.input_dim:
             kwargs['input_shape'] = (self.input_dim)
@@ -100,7 +161,6 @@ class gaussian2dMapLayer(Layer):
         gaussianDistance = K.exp((-1./2.)*malahDistance)
         detCov = matrix_determinant(cov)
         denom = 1./(2*np.pi*K.sqrt(detCov))
-#        gdKernel = K.dot(x,denom*gaussianDistance)
         gdKernel = tensordot(x,denom*gaussianDistance,axes=1)
         return K.expand_dims(gdKernel)
 

@@ -51,3 +51,15 @@ def kConvNet(given_options):
     
     options['Loss_Function']= optDef('Loss_Function',given_options,'mse')
     return options
+
+def kConvMaxGaussNet(given_options):
+    options = dict()
+    options['N_Kern'] = 1
+    options['Filter_Size'] = 13
+    options['Stride'] = 1
+    options['Pool_Size'] = 2
+    options['N_Kern'] = 1
+    options['Num_Pieces'] = 5
+    options['Loss_Function']= 'mse'
+    options.update(given_options)
+    return options

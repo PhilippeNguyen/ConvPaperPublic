@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -6,6 +7,7 @@
 import numpy as np
 np.random.seed(10)  # this line controls the randomness, comment it out if you want unseeded randomness
 import keras
+import keras.backend as K
 keras.backend.set_image_dim_ordering('th')
 from algorithms import k_algorithms
 from models import k_allModelInfo
@@ -32,39 +34,14 @@ def getWhiteNoiseStim(movieSize):
 def main():
     
     options = dict()
-    print('When an image is displayed, click on it to move forward\n')
-    '''
-    First, we generate a fake data. 
-    Generateone simple cell with an LN model and 
-    one complex cell using the Adelson-Bergen energy model. 
+  
     
-    For simplicity's sake, these models will have no time dynamics (though the convolutional
-    model will include time dynamics)
-    
-    Note that the convolutional model does not directly estimate the AB Energy model,
-    Rather, it models a neuron which non-linearly sums the responses of multiple spatially seperated
-    simple cells with identical filters. Nevertheless, this convolutional method is able to perform well at
-    predicting AB Energy responses. 
-    You can increase the number filters with the N_Kern option. Though the plotting code given here assumes 1 filter.
-    Furthermore, some interpretability of the model will be lost as you add complexity to the model (more filters/layers)
-    
-    '''
-    
-    
-    stimQuery = input('Use Natural Stimulus? White noise stimulus otherwise. (y/n) \n')
-    if stimQuery.lower() =='y' or stimQuery.lower()=='yes':
-        print('Using natural images\n')
-        stim = getNatStim()
-        movieSize = np.shape(stim)
-        imSize = (movieSize[0],movieSize[1])
-        movieLength = movieSize[2]
-    else:
-        #you may require more data using white noise than natural images
-        print('Using white noise \n')
-        movieLength = 15000
-        imSize = (30,30)
-        movieSize = (*imSize,movieLength)
-        stim = getWhiteNoiseStim(movieSize)
+    print('Using natural images\n')
+    stim = getNatStim()
+    movieSize = np.shape(stim)
+    imSize = (movieSize[0],movieSize[1])
+    movieLength = movieSize[2]
+
 
     #Set up neuron Gabors
 
@@ -75,16 +52,7 @@ def main():
     env = 2.0
     gabor0,gabor90 = generateGabors(imSize,xCenter,yCenter,sf,ori,env)
     
-    #Plot the Gabors
-    plt.imshow(gabor0)
-    plt.title('Gabor 1')
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
-    plt.imshow(gabor90)
-    plt.title('Gabor 2')
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
-    
+
     #get responses for gabors 
     
     gabor0Response = np.tensordot(gabor0,stim)
@@ -118,7 +86,7 @@ def main():
     Initialize the convolutional model
     '''
     
-    myModel = k_allModelInfo.kConvGaussNet()
+    myModel = k_allModelInfo.kConvMaxGaussNet()
 
 #    myModel = k_allModelInfo.kConvNet() #You can use the affine dense layer convolution model instead of Gaussian 
                                         # (will need to plot using the plotStandardMap instead of plotGaussMap)
@@ -151,47 +119,35 @@ def main():
     options['Input_Shape'] =  myModel._getInputShape(estSet)
     
 
-    '''
-    Estimate the simple cell
-    '''
-    y_est=simpleCellResponse[estIdx]
-    y_reg=simpleCellResponse[regIdx]
-    y_pred =simpleCellResponse[predIdx]
-    
-    simpleCellResults,_ = k_algorithms.k_SIAAdam(myModel,estSet,y_est,regSet,y_reg,predSet,y_pred,options)
-    
-
-    '''
-    Simple Cell Analysis. Just plotting the weights. Click on the images to move to the next one
-    '''
-    simpleOpts = simpleCellResults['options']
-    convImageSize = conv_output_length(imSize[0],simpleOpts['Filter_Size'],'valid',simpleOpts['Stride'])
-    mapSize = conv_output_length(convImageSize,simpleOpts['Pool_Size'],'valid',simpleOpts['Pool_Size'])
-
-    simpleCellWeights = simpleCellResults['model']['weights']
-    filterWeights = checkRotation(simpleCellWeights[0][:,:,:,0])
-    plotFilter(filterWeights)
-    plt.suptitle('Simple cell filter')
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
-    alpha = np.squeeze(simpleCellWeights[2])
-    plotAlpha(alpha)
-    plt.title('PReLU (Estimated intermediate non-linearity), alpha = {}'.format(alpha))
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
-    mapMean = simpleCellWeights[3]
-    mapSigma = simpleCellWeights[4]
-    print('printing gaussian values, values are scaled such that 0(top/left) to 1(bottom/right)')
-    print('Gaussian Center (x,y): {}'.format(mapMean))
-    print('Gaussian Covariance Matrix (sig_x,covariance,sig_y): {}'.format(mapSigma))
-    mapVals = plotGaussMap(mapMean,mapSigma,mapSize)
-    plt.title('Gaussian Map (projected onto Map Layer)')
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
-    plotReconstruction(filterWeights,mapVals,simpleOpts['Stride'],simpleOpts['Pool_Size'],imSize[0])
-    plt.suptitle('Reconstruction of the linear filter')
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
+#    '''
+#    Estimate the simple cell
+#    '''
+#    y_est=simpleCellResponse[estIdx]
+#    y_reg=simpleCellResponse[regIdx]
+#    y_pred =simpleCellResponse[predIdx]
+#    
+#    simpleCellResults,est_model = k_algorithms.k_SIAAdam(myModel,estSet,y_est,
+#                                               regSet,y_reg,predSet,y_pred,
+#                                               options)
+#    conv_layer = est_model.get_layer(index=1)
+#    conv_layer_output = K.function(est_model.inputs,[conv_layer.output])
+#    conv_output_est = conv_layer_output([estSet])[0]
+#    conv_min,conv_max = np.min(conv_output_est),np.max(conv_output_est)
+#    
+#    '''
+#    Simple Cell Analysis. Just plotting the weights. Click on the images to move to the next one
+#    '''
+#    simpleOpts = simpleCellResults['options']
+#    convImageSize = conv_output_length(imSize[0],simpleOpts['Filter_Size'],'valid',simpleOpts['Stride'])
+#    mapSize = conv_output_length(convImageSize,simpleOpts['Pool_Size'],'valid',simpleOpts['Pool_Size'])
+#
+#    simpleCellWeights = simpleCellResults['model']['weights']
+#    
+#    maxout_lin = simpleCellWeights[2]
+#    maxout_bias = simpleCellWeights[3]
+#    alpha_space = np.expand_dims(np.linspace(conv_min,conv_max),axis=-1)
+#    alpha_y = np.max((alpha_space*maxout_lin)+maxout_bias,axis=-1)
+#    plt.plot(alpha_space,alpha_y)
     
     '''
     Estimate the complex cell
@@ -201,8 +157,12 @@ def main():
     y_reg=complexCellResponse[regIdx]
     y_pred =complexCellResponse[predIdx]
     
-    complexCellResults,_ = k_algorithms.k_SIAAdam(myModel,estSet,y_est,regSet,y_reg,predSet,y_pred,options)
+    complexCellResults,est_model = k_algorithms.k_SIAAdam(myModel,estSet,y_est,regSet,y_reg,predSet,y_pred,options)
 
+    conv_layer = est_model.get_layer(index=1)
+    conv_layer_output = K.function(est_model.inputs,[conv_layer.output])
+    conv_output_est = conv_layer_output([estSet])[0]
+    conv_min,conv_max = np.min(conv_output_est),np.max(conv_output_est)
     '''
     Complex Cell Analysis. Just plotting the weights. Click on the images to move to the next one
     '''
@@ -211,27 +171,11 @@ def main():
     mapSize = conv_output_length(convImageSize,complexOpts['Pool_Size'],'valid',complexOpts['Pool_Size'])
 
     complexCellWeights = complexCellResults['model']['weights']
-    filterWeights = checkRotation(complexCellWeights[0][:,:,:,0]) 
-    plotFilter(filterWeights)
-    plt.suptitle('Complex cell filter')
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
-    alpha = np.squeeze(complexCellWeights[2])
-    plotAlpha(alpha)
-    plt.title('PReLU (Estimated intermediate non-linearity), alpha = {}'.format(alpha))
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
-    mapMean = complexCellWeights[3]
-    mapSigma = complexCellWeights[4]
-    print('printing gaussian values, values are scaled such that 0(top/left) to 1(bottom/right)')
-    print('Gaussian Center (x,y): {}'.format(mapMean))
-    print('Gaussian Covariance Matrix (sig_x,covariance,sig_y): {}'.format(mapSigma))
-    mapVals = plotGaussMap(mapMean,mapSigma,mapSize)
-    plt.title('Gaussian Map (projected onto Map Layer)')
-    plt.waitforbuttonpress()
-    plt.close(plt.gcf())
-    print('No reconstruction for the complex cell because you should see PReLU =/= 1, thus the linear reconstruction would be invalid')
-    
+    maxout_lin = complexCellWeights[2]
+    maxout_bias = complexCellWeights[3]
+    alpha_space = np.expand_dims(np.linspace(conv_min,conv_max),axis=-1)
+    alpha_y = np.max((alpha_space*maxout_lin)+maxout_bias,axis=-1)
+    plt.plot(alpha_space,alpha_y)
     return
 
 def generateGabors(imSize,xCenter,yCenter,sf,ori,env):
