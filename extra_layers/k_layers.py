@@ -122,7 +122,7 @@ class gaussian2dMapLayer(Layer):
 
         self.init_mean = init_mean.astype('float32')
         self.init_sigma = init_sigma.astype('float32')
-        self.tolerance = np.asarray(0.001) #use tolerance from stopping the matrix from being un-invertible
+        self.tolerance = np.asarray(0.01) #use tolerance from stopping the matrix from being un-invertible
 
         if self.input_dim:
             kwargs['input_shape'] = (self.input_dim)
@@ -146,10 +146,12 @@ class gaussian2dMapLayer(Layer):
 
     def call(self,x, mask=None):
         x = K.reshape(x,(K.shape(x)[0],K.shape(x)[-2]*K.shape(x)[-1]))
-
-        covar = K.sign(self.sigma[1])*K.switch(K.sqrt(self.sigma[0]*self.sigma[2])-self.tolerance > K.abs(self.sigma[1]),
+        covar = K.sign(self.sigma[1])*K.switch(K.sqrt(K.abs(self.sigma[0]*self.sigma[2]))-self.tolerance >= K.abs(self.sigma[1]),
                                                  K.abs(self.sigma[1]),
-                                                 K.sqrt(self.sigma[0]*self.sigma[2])-self.tolerance )
+                                                 K.sqrt(K.abs(self.sigma[0]*self.sigma[2]))-self.tolerance )
+#        covar = K.sign(self.sigma[1])*K.switch(K.sqrt(self.sigma[0]*self.sigma[2])-self.tolerance > K.abs(self.sigma[1]),
+#                                                 K.abs(self.sigma[1]),
+#                                                 K.sqrt(self.sigma[0]*self.sigma[2])-self.tolerance )
 
         #Below is just the calculations for a Gaussian
         inner = (self.spaceVector - self.inv_scale*K.expand_dims(self.mean))
